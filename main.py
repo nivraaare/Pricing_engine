@@ -45,35 +45,39 @@ def calculate_quote(payload: QuoteRequest, x_api_key: Optional[str] = Header(Non
         inputs["'Pricing Engine'!B14"] = payload.price_override
 
     try:
-        # 4. Execute calculations across the full dependency tree
-        xl_model.calculate(inputs=inputs)
+        # 4. Execute calculations across the full dependency tree and capture the result
+        solution = xl_model.calculate(inputs=inputs)
+
+        # Helper to extract a single cell's value from the 2D array returned by formulas
+        def get_val(cell_ref):
+            return solution[cell_ref].value[0, 0]
 
         # 5. Extract calculated customer quote and internal CFO metrics
         return {
             "success": True,
             "data": {
-                "service": str(xl_model.evaluate("'Pricing Engine'!D21")),
-                "duration": str(xl_model.evaluate("'Pricing Engine'!D22")),
+                "service": str(get_val("'Pricing Engine'!D21")),
+                "duration": str(get_val("'Pricing Engine'!D22")),
                 "pricing": {
-                    "careServiceCharge": float(xl_model.evaluate("'Pricing Engine'!D23")),
-                    "estimatedCabFare": float(xl_model.evaluate("'Pricing Engine'!D24")),
-                    "transportCoordinationFee": float(xl_model.evaluate("'Pricing Engine'!D25")),
-                    "transportTotal": float(xl_model.evaluate("'Pricing Engine'!D26")),
-                    "totalEstimatedCharge": float(xl_model.evaluate("'Pricing Engine'!D27"))
+                    "careServiceCharge": float(get_val("'Pricing Engine'!D23")),
+                    "estimatedCabFare": float(get_val("'Pricing Engine'!D24")),
+                    "transportCoordinationFee": float(get_val("'Pricing Engine'!D25")),
+                    "transportTotal": float(get_val("'Pricing Engine'!D26")),
+                    "totalEstimatedCharge": float(get_val("'Pricing Engine'!D27"))
                 },
                 "breakup": {
-                    "firstTierHours": float(xl_model.evaluate("'Pricing Engine'!B37")),
-                    "firstTierRate": float(xl_model.evaluate("'Pricing Engine'!B38")),
-                    "extendedHours": float(xl_model.evaluate("'Pricing Engine'!B40")),
-                    "extendedRate": float(xl_model.evaluate("'Pricing Engine'!B41")),
-                    "serviceMultiplier": float(xl_model.evaluate("'Pricing Engine'!B44")),
-                    "careCoordinationFee": float(xl_model.evaluate("'Pricing Engine'!B46"))
+                    "firstTierHours": float(get_val("'Pricing Engine'!B37")),
+                    "firstTierRate": float(get_val("'Pricing Engine'!B38")),
+                    "extendedHours": float(get_val("'Pricing Engine'!B40")),
+                    "extendedRate": float(get_val("'Pricing Engine'!B41")),
+                    "serviceMultiplier": float(get_val("'Pricing Engine'!B44")),
+                    "careCoordinationFee": float(get_val("'Pricing Engine'!B46"))
                 },
                 "cfoEconomics": {
-                    "netCareRevenue": round(float(xl_model.evaluate("'Pricing Engine'!B50")), 2),
-                    "embeddedGST": round(float(xl_model.evaluate("'Pricing Engine'!B49")), 2),
-                    "contribution": round(float(xl_model.evaluate("'Pricing Engine'!B71")), 2),
-                    "marginPct": round(float(xl_model.evaluate("'Pricing Engine'!B72")) * 100, 2)
+                    "netCareRevenue": round(float(get_val("'Pricing Engine'!B50")), 2),
+                    "embeddedGST": round(float(get_val("'Pricing Engine'!B49")), 2),
+                    "contribution": round(float(get_val("'Pricing Engine'!B71")), 2),
+                    "marginPct": round(float(get_val("'Pricing Engine'!B72")) * 100, 2)
                 }
             }
         }
