@@ -9,7 +9,7 @@ app = FastAPI(
     description="CPQ calculation engine powered directly by the master CFO financial model."
 )
 
-EXCEL_FILE = "NivraaCare_Clean_API_Ready_Pricing_Finacial_Model_with Manual_Formula_v1.xlsx"
+EXCEL_FILE = "NivraaCare_Pricing_Engine.xlsx"
 API_SECRET_KEY = os.getenv("API_KEY", "nc_live_secret_key_123")
 
 # Load model into memory once on server boot
