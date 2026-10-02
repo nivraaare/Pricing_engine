@@ -33,24 +33,25 @@ def calculate_quote(payload: QuoteRequest, x_api_key: Optional[str] = Header(Non
     # 2. Map transport selection to the exact string expected by the model
     transport_str = "NivrāaCare Arranges Transport" if payload.transport_required else "Patient arranges transport"
 
-    # 3. Inject inputs into the Pricing Engine tab
+    # 3. Inject inputs into the Pricing Engine tab (Keys must be UPPERCASE for formulas)
     inputs = {
-        "'Pricing Engine'!B10": payload.service,
-        "'Pricing Engine'!B11": payload.hours,
-        "'Pricing Engine'!B12": transport_str,
-        "'Pricing Engine'!B13": payload.cab_fare
+        "'PRICING ENGINE'!B10": payload.service,
+        "'PRICING ENGINE'!B11": payload.hours,
+        "'PRICING ENGINE'!B12": transport_str,
+        "'PRICING ENGINE'!B13": payload.cab_fare
     }
     
     if payload.price_override is not None:
-        inputs["'Pricing Engine'!B14"] = payload.price_override
+        inputs["'PRICING ENGINE'!B14"] = payload.price_override
 
     try:
-        # 4. Execute calculations across the full dependency tree and capture the result
+        # 4. Execute calculations across the full dependency tree
         solution = xl_model.calculate(inputs=inputs)
 
         # Helper to extract a single cell's value from the 2D array returned by formulas
         def get_val(cell_ref):
-            return solution[cell_ref].value[0, 0]
+            # formulas normalizes all internal keys to UPPERCASE
+            return solution[cell_ref.upper()].value[0, 0]
 
         # 5. Extract calculated customer quote and internal CFO metrics
         return {
